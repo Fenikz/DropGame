@@ -35,7 +35,7 @@ public class MainMenuScreen implements Screen {
 
         game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
-        game.font.draw(game.batch, "Catch all drops!", 100, 150);
+        game.font.draw(game.batch, "Catch all dropsTextures!", 100, 150);
         game.font.draw(game.batch, "Touch screen for start!", 100, 100);
         game.batch.end();
 

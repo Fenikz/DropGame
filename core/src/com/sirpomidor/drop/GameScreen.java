@@ -23,16 +23,17 @@ public class GameScreen implements Screen {
     SpriteBatch batch;
     OrthographicCamera camera;
 
-    Texture dropImage;
-	Texture bucketImage;
+    Texture bucketImage;
 	Sound dropSound;
 	Music rainMusic;
     Rectangle bucket;
     Vector3 touchPos;
-    Array<Rectangle> raindrops;
+    Array<Texture> dropsTextures;
     long lastDropTime;
 
     int dropCatched;
+    Array<DropElement> dropElements;
+
 
     public GameScreen (final Drop game) {
 
@@ -43,7 +44,7 @@ public class GameScreen implements Screen {
 
 		batch = new SpriteBatch();
 
-        dropImage = new Texture("droplet.png");
+        // TODO: 09.04.2016 Выделить bucket в отдельный класс с изменяемым состояением
         bucketImage = new Texture("bucket.png");
 
         dropSound = Gdx.audio.newSound(Gdx.files.internal("waterdrop.wav"));
@@ -60,9 +61,16 @@ public class GameScreen implements Screen {
 
         touchPos = new Vector3();
 
-        raindrops = new Array<Rectangle>();
-        spawnRaindrop();
-	}
+        dropsTextures = new Array<Texture>();
+        dropsTextures.add(new Texture(Gdx.files.internal("mercedes.png")));
+        dropsTextures.add(new Texture(Gdx.files.internal("burger.png")));
+        dropsTextures.add(new Texture(Gdx.files.internal("beer.png")));
+        // TODO: 09.04.2016 Добавить текстуру деньги
+        // TODO: 09.04.2016 Добавить текстуру каки
+
+        dropElements = new Array<DropElement>();
+        spawnDrop();
+    }
 
 	@Override
 	public void render (float delta) {
@@ -70,16 +78,15 @@ public class GameScreen implements Screen {
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
         camera.update();
-
         game.batch.setProjectionMatrix(camera.combined);
-
         game.batch.begin();
 
         game.font.draw(game.batch, "Drops: " + dropCatched, 0, 480);
         game.batch.draw(bucketImage, bucket.x, bucket.y);
 
-        for (Rectangle raindrop : raindrops) {
-            game.batch.draw(dropImage, raindrop.x, raindrop.y);
+        for (DropElement dropElement : dropElements) {
+            game.batch.draw(dropElement.texture, dropElement.getX(), dropElement.y,
+                    dropElement.getWidth(), dropElement.getHeight());
         }
 
         game.batch.end();
@@ -107,42 +114,43 @@ public class GameScreen implements Screen {
         }
 
         if (TimeUtils.nanoTime() - lastDropTime > 1000000000) {
-            spawnRaindrop();
+            spawnDrop();
         }
 
-        Iterator<Rectangle> iter = raindrops.iterator();
+        Iterator<DropElement> iterator = dropElements.iterator();
 
-        while (iter.hasNext()) {
-            Rectangle raindrop = iter.next();
-            raindrop.y -= 200 * Gdx.graphics.getDeltaTime();
-            if (raindrop.y + 64 < 0) {
-                iter.remove();
+        while (iterator.hasNext()) {
+            DropElement dropElement = iterator.next();
+            dropElement.setY((int) (dropElement.getY() - 200 * Gdx.graphics.getDeltaTime()));
+            if (dropElement.getY() + 64 < 0) {
+                iterator.remove();
             }
-            if (raindrop.overlaps(bucket)) {
+            // TODO: 09.04.2016 Добавить условие Overlaps
+            if (dropElement.overlaps(bucket)) {
                 dropCatched++;
                 dropSound.play();
-                iter.remove();
+                iterator.remove();
             }
         }
 	}
 
-    private void spawnRaindrop() {
-        Rectangle raindrop = new Rectangle();
-        raindrop.x = MathUtils.random(0, 800 - 64);
-        raindrop.y = 480;
-        raindrop.width = 64;
-        raindrop.height = 64;
-        raindrops.add(raindrop);
+    private void spawnDrop() {
+        DropElement dropElement = new DropElement(MathUtils.random(0, 800 - 64), 480,
+                64, 64, dropsTextures.get(MathUtils.random(2)));
+        dropElements.add(dropElement);
         lastDropTime = TimeUtils.nanoTime();
     }
 
     @Override
     public void dispose() {
         dropSound.dispose();
-        dropImage.dispose();
         bucketImage.dispose();
         rainMusic.dispose();
         batch.dispose();
+
+        for (DropElement dropElement : dropElements) {
+            dropElement.dispose();
+        }
     }
 
     @Override
@@ -168,5 +176,56 @@ public class GameScreen implements Screen {
     @Override
     public void hide() {
 
+    }
+
+    class DropElement {
+
+        private int x;
+        private int y;
+        private int width;
+        private int height;
+        private Texture texture;
+
+        public DropElement(int x, int y, int height, int width, Texture texture) {
+            this.x = x;
+            this.y = y;
+            this.texture = texture;
+            this.height = height;
+            this.width = width;
+        }
+
+        private void dispose() {
+            texture.dispose();
+        }
+
+        public int getX() {
+            return x;
+        }
+
+        public int getY() {
+            return y;
+        }
+
+        public void setY(int y) {
+            this.y = y;
+        }
+
+        public int getWidth() {
+            return width;
+        }
+
+        public int getHeight() {
+            return height;
+        }
+
+        public Texture getTexture() {
+            return texture;
+        }
+
+        /** @param r the other {@link Rectangle}
+         * @return whether this rectangle overlaps the other rectangle. */
+        public boolean overlaps (Rectangle r) {
+            return x < r.x + r.width && x + width > r.x && y < r.y + r.height && y + height > r.y;
+        }
     }
 }
