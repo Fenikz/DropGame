@@ -26,13 +26,14 @@ public class GameScreen implements Screen {
     Texture bucketImage;
 	Sound dropSound;
 	Music rainMusic;
-    Rectangle bucket;
+    Rectangle oldBucket;
     Vector3 touchPos;
     Array<Texture> dropsTextures;
     long lastDropTime;
 
     int dropCatched;
     Array<DropElement> dropElements;
+    Bucket bucket;
 
 
     public GameScreen (final Drop game) {
@@ -44,8 +45,9 @@ public class GameScreen implements Screen {
 
 		batch = new SpriteBatch();
 
-        // TODO: 09.04.2016 Выделить bucket в отдельный класс с изменяемым состояением
+        // TODO: 09.04.2016 Выделить Bucket в отдельный класс с изменяемым состояением
         bucketImage = new Texture("bucket.png");
+        bucket = new Bucket(800 / 2 - 64 /2, 20, 64, 64, new Texture("bucket.png"));
 
         dropSound = Gdx.audio.newSound(Gdx.files.internal("waterdrop.wav"));
         rainMusic = Gdx.audio.newMusic(Gdx.files.internal("undertreeinrain.mp3"));
@@ -53,11 +55,11 @@ public class GameScreen implements Screen {
         rainMusic.setLooping(true);
         rainMusic.play();
 
-        bucket = new Rectangle();
-        bucket.x = 800 / 2 - 64 /2;
-        bucket.y = 20;
-        bucket.width = 64;
-        bucket.height = 64;
+        oldBucket = new Rectangle();
+        oldBucket.x = 800 / 2 - 64 /2;
+        oldBucket.y = 20;
+        oldBucket.width = 64;
+        oldBucket.height = 64;
 
         touchPos = new Vector3();
 
@@ -82,7 +84,7 @@ public class GameScreen implements Screen {
         game.batch.begin();
 
         game.font.draw(game.batch, "Drops: " + dropCatched, 0, 480);
-        game.batch.draw(bucketImage, bucket.x, bucket.y);
+        game.batch.draw(bucket.getTexture(), bucket.getX(), bucket.getY());
 
         for (DropElement dropElement : dropElements) {
             game.batch.draw(dropElement.getTexture(), dropElement.getX(), dropElement.getY(),
@@ -94,23 +96,23 @@ public class GameScreen implements Screen {
         if (Gdx.input.isTouched()) {
             touchPos.set(Gdx.input.getX(), Gdx.input.getY(), 0);
             camera.unproject(touchPos);
-            bucket.x = (int) touchPos.x - 64 / 2;
+            bucket.setX((int) touchPos.x - 64 / 2);
         }
 
         if (Gdx.input.isKeyPressed(Input.Keys.LEFT)) {
-            bucket.x -= 200 * Gdx.graphics.getDeltaTime();
+            bucket.setX((int) (bucket.getX() - 200 * Gdx.graphics.getDeltaTime()));
         }
 
         if (Gdx.input.isKeyPressed(Input.Keys.RIGHT)) {
-            bucket.x += 200 * Gdx.graphics.getDeltaTime();
+            bucket.setX((int) (bucket.getX() + 200 * Gdx.graphics.getDeltaTime()));
         }
 
-        if (bucket.x < 0) {
-            bucket.x = 0;
+        if (oldBucket.x < 0) {
+            bucket.setX(0);
         }
 
-        if (bucket.x > 800 - 64) {
-            bucket.x = 800 - 64;
+        if (oldBucket.x > 800 - 64) {
+            bucket.setX(800 - 64);
         }
 
         if (TimeUtils.nanoTime() - lastDropTime > 1000000000) {
@@ -176,5 +178,51 @@ public class GameScreen implements Screen {
     @Override
     public void hide() {
 
+    }
+
+    private class Bucket implements Collapseable {
+        private int x;
+        private int y;
+        private int width;
+        private int height;
+        private Texture texture;
+
+        public Bucket(int x, int y, int width, int height, Texture texture) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+            this.texture = texture;
+        }
+
+        public void setX(int x) {
+            this.x = x;
+        }
+
+        public void setY(int y) {
+            this.y = y;
+        }
+
+        public Texture getTexture() {
+            return texture;
+        }
+
+        public int getX() {
+            return x;
+        }
+
+        @Override
+        public int getWidth() {
+            return width;
+        }
+
+        @Override
+        public int getHeight() {
+            return height;
+        }
+
+        public int getY() {
+            return y;
+        }
     }
 }

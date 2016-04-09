@@ -6,7 +6,7 @@ import com.badlogic.gdx.math.Rectangle;
 /**
  * Created by Dmitry on 09.04.2016.
  */
-public class DropElement {
+public class DropElement implements Collapseable {
 
     private int x;
     private int y;
@@ -53,7 +53,8 @@ public class DropElement {
 
     /** @param r the other {@link Rectangle}
      * @return whether this rectangle overlaps the other rectangle. */
-    public boolean overlaps (Rectangle r) {
-        return x < r.x + r.width && x + width > r.x && y < r.y + r.height && y + height > r.y;
+    public boolean overlaps (Collapseable collapseable) {
+        return x < collapseable.getX() + collapseable.getWidth() && x + width > collapseable.getX()
+                && y < collapseable.getY() + collapseable.getHeight() && y + height > collapseable.getY();
     }
 }
