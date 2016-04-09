@@ -13,7 +13,6 @@ import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.TimeUtils;
-import com.badlogic.gdx.math.Rectangle;
 
 import java.util.Iterator;
 
@@ -25,8 +24,7 @@ public class GameScreen implements Screen {
 
     Texture bucketImage;
 	Sound dropSound;
-	Music rainMusic;
-    Rectangle oldBucket;
+	Music backgroundMusic;
     Vector3 touchPos;
     Array<Texture> dropsTextures;
     long lastDropTime;
@@ -45,21 +43,13 @@ public class GameScreen implements Screen {
 
 		batch = new SpriteBatch();
 
-        // TODO: 09.04.2016 Выделить Bucket в отдельный класс с изменяемым состояением
-        bucketImage = new Texture("bucket.png");
         bucket = new Bucket(800 / 2 - 64 /2, 20, 64, 64, new Texture("bucket.png"));
 
         dropSound = Gdx.audio.newSound(Gdx.files.internal("waterdrop.wav"));
-        rainMusic = Gdx.audio.newMusic(Gdx.files.internal("undertreeinrain.mp3"));
+        backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal("undertreeinrain.mp3"));
 
-        rainMusic.setLooping(true);
-        rainMusic.play();
-
-        oldBucket = new Rectangle();
-        oldBucket.x = 800 / 2 - 64 /2;
-        oldBucket.y = 20;
-        oldBucket.width = 64;
-        oldBucket.height = 64;
+        backgroundMusic.setLooping(true);
+        backgroundMusic.play();
 
         touchPos = new Vector3();
 
@@ -107,11 +97,11 @@ public class GameScreen implements Screen {
             bucket.setX((int) (bucket.getX() + 200 * Gdx.graphics.getDeltaTime()));
         }
 
-        if (oldBucket.x < 0) {
+        if (bucket.getX() < 0) {
             bucket.setX(0);
         }
 
-        if (oldBucket.x > 800 - 64) {
+        if (bucket.getX() > 800 - 64) {
             bucket.setX(800 - 64);
         }
 
@@ -127,7 +117,7 @@ public class GameScreen implements Screen {
             if (dropElement.getY() + 64 < 0) {
                 iterator.remove();
             }
-            // TODO: 09.04.2016 Добавить условие Overlaps
+
             if (dropElement.overlaps(bucket)) {
                 dropCatched++;
                 dropSound.play();
@@ -147,7 +137,7 @@ public class GameScreen implements Screen {
     public void dispose() {
         dropSound.dispose();
         bucketImage.dispose();
-        rainMusic.dispose();
+        backgroundMusic.dispose();
         batch.dispose();
 
         for (DropElement dropElement : dropElements) {
@@ -157,7 +147,7 @@ public class GameScreen implements Screen {
 
     @Override
     public void show() {
-        rainMusic.play();
+        backgroundMusic.play();
     }
 
     @Override
@@ -178,51 +168,5 @@ public class GameScreen implements Screen {
     @Override
     public void hide() {
 
-    }
-
-    private class Bucket implements Collapseable {
-        private int x;
-        private int y;
-        private int width;
-        private int height;
-        private Texture texture;
-
-        public Bucket(int x, int y, int width, int height, Texture texture) {
-            this.x = x;
-            this.y = y;
-            this.width = width;
-            this.height = height;
-            this.texture = texture;
-        }
-
-        public void setX(int x) {
-            this.x = x;
-        }
-
-        public void setY(int y) {
-            this.y = y;
-        }
-
-        public Texture getTexture() {
-            return texture;
-        }
-
-        public int getX() {
-            return x;
-        }
-
-        @Override
-        public int getWidth() {
-            return width;
-        }
-
-        @Override
-        public int getHeight() {
-            return height;
-        }
-
-        public int getY() {
-            return y;
-        }
     }
 }
