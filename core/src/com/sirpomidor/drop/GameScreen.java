@@ -85,7 +85,7 @@ public class GameScreen implements Screen {
         game.batch.draw(bucketImage, bucket.x, bucket.y);
 
         for (DropElement dropElement : dropElements) {
-            game.batch.draw(dropElement.texture, dropElement.getX(), dropElement.y,
+            game.batch.draw(dropElement.getTexture(), dropElement.getX(), dropElement.getY(),
                     dropElement.getWidth(), dropElement.getHeight());
         }
 
@@ -176,56 +176,5 @@ public class GameScreen implements Screen {
     @Override
     public void hide() {
 
-    }
-
-    class DropElement {
-
-        private int x;
-        private int y;
-        private int width;
-        private int height;
-        private Texture texture;
-
-        public DropElement(int x, int y, int height, int width, Texture texture) {
-            this.x = x;
-            this.y = y;
-            this.texture = texture;
-            this.height = height;
-            this.width = width;
-        }
-
-        private void dispose() {
-            texture.dispose();
-        }
-
-        public int getX() {
-            return x;
-        }
-
-        public int getY() {
-            return y;
-        }
-
-        public void setY(int y) {
-            this.y = y;
-        }
-
-        public int getWidth() {
-            return width;
-        }
-
-        public int getHeight() {
-            return height;
-        }
-
-        public Texture getTexture() {
-            return texture;
-        }
-
-        /** @param r the other {@link Rectangle}
-         * @return whether this rectangle overlaps the other rectangle. */
-        public boolean overlaps (Rectangle r) {
-            return x < r.x + r.width && x + width > r.x && y < r.y + r.height && y + height > r.y;
-        }
     }
 }
